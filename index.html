@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,6 +26,9 @@
   nav a{text-decoration:none;padding:2px 0;border-bottom:2px solid transparent}
   nav a.on{border-bottom-color:var(--red);color:var(--red)}
   nav a.new{font-weight:600;color:var(--red)}
+  .langbtn{border:2px solid var(--ink);background:#fff;padding:0 8px;cursor:pointer;font-size:13px;letter-spacing:.04em}
+  .langbtn b{color:var(--red)}
+  .langbtn span{opacity:.45}
 
   section{padding:22px 0;border-bottom:var(--dots)}
   section:last-child{border-bottom:none}
@@ -109,18 +112,79 @@
 <header><div class="wrap">
   <a class="brand" href="#home">▢ Le carnet Yum Yum</a>
   <nav>
-    <a href="#home" data-nav="home">Home</a>
-    <a href="#recipes" data-nav="recipes">Recipes</a>
-    <a href="#ingredients" data-nav="ingredients">Ingredients</a>
-    <a href="#add" data-nav="add" class="new owner-only">+ New</a>
+    <a href="#home" data-nav="home" data-i18n="nav_home">Accueil</a>
+    <a href="#recipes" data-nav="recipes" data-i18n="nav_recipes">Recettes</a>
+    <a href="#ingredients" data-nav="ingredients" data-i18n="nav_ing">Ingrédients</a>
+    <a href="#add" data-nav="add" class="new owner-only" data-i18n="nav_new">+ Nouvelle</a>
+    <button id="langToggle" class="langbtn" title="Langue / Language"></button>
   </nav>
 </div></header>
 <main class="wrap" id="app"></main>
 
 <script>
-const CATS=[{id:"starter",label:"Starters"},{id:"main",label:"Mains"},{id:"dessert",label:"Desserts & pastry"},{id:"basics",label:"Basics"}];
-const CAT=Object.fromEntries(CATS.map(c=>[c.id,c.label]));
-const LANGS={fr:"Français",en:"English"};
+const I18N={
+fr:{nav_home:"Accueil",nav_recipes:"Recettes",nav_ing:"Ingrédients",nav_new:"+ Nouvelle",
+cat_starter:"Entrées",cat_main:"Plats",cat_dessert:"Desserts & pâtisserie",cat_basics:"Bases",lang_fr:"Français",lang_en:"Anglais",
+loading:"Ouverture du carnet…",slow:"Impossible de joindre vos recettes pour l'instant. Vérifiez votre connexion : la page se remplira toute seule.",
+nodb:"Le stockage des recettes n'est pas disponible ici. Ouvrez la page sur claude.ai en étant connecté.",loaderr:"Impossible de charger les recettes ({0}).",
+home_h1:"On cuisine quoi ?",home_ph:"une recette, un ingrédient, un mot…",search:"Chercher",nb_one:"{0} recette dans le carnet",nb_many:"{0} recettes dans le carnet",
+last_added:"Dernière ajoutée",empty_nb:"Le carnet est vide.",add_first:"Ajoutez votre première recette",no_match:"Aucune recette ne correspond.",
+res_one:"{0} recette",res_many:"{0} recettes",favs_empty:"Ouvrez quelques recettes : celles que vous consultez le plus apparaîtront ici.",
+recipes_h1:"Recettes",rq_ph:"titre, ingrédient, étape… (essayez « farine » ou « flour »)",all:"Toutes",any_lang:"Toutes les langues",most_viewed:"Les plus consultées",
+no_ing_name:"Aucun ingrédient de ce nom dans vos recettes.",no_recipe_uses:"Aucune recette n'utilise « {0} » pour l'instant.",
+pick_ing:"Choisissez un ou plusieurs ingrédients ci-dessus : les recettes qui les utilisent tous apparaissent ici.",no_combo:"Aucune recette n'utilise tous ces ingrédients ensemble.",
+ing_h1:"Ingrédients",ing_intro:"Une courgette dans le frigo ? Tapez-la (en français ou en anglais) ou touchez les ingrédients ci-dessous.",iq_ph:"courgette, zucchini, farine…",
+clear_sel:"effacer la sélection",not_found:"Recette introuvable.",back_recipes:"Retour aux recettes",back_link:"← recettes",from:"d'après",
+ingredients:"Ingrédients",method:"Préparation",tap_num:"Touchez un numéro pour voir ses ingrédients.",notes:"Notes et astuces",edit:"Modifier",del:"Supprimer",
+viewed:"Vue {0} fois · ajoutée le {1}",convert_h2:"Convertir",
+conv_intro:"Collez une recette trouvée sur un site, ou prenez en photo une page du carnet. Le formulaire ci-dessous se remplit au format numéroté : vérifiez, puis enregistrez.",
+paste_text:"Coller du texte",photo_page:"Photo d'une page",c_text_ph:"Sur la page de la recette : tout sélectionner (Ctrl+A), copier (Ctrl+C), coller ici.",
+c_url_ph:"lien de la page (facultatif, enregistré comme source)",convert_btn:"Convertir",photo_hint:"Une recette à la fois ; ajoutez 2 photos si elle tient sur deux pages.",
+read_photo:"Lire la photo",link_only:"Vous n'avez qu'un lien ? Collez-le à Claude dans la conversation : il peut ajouter la recette pour vous.",
+edit_recipe:"Modifier la recette",new_recipe:"Nouvelle recette",title:"Titre",category:"Catégorie",language:"Langue",source:"Source",optional:"(facultatif)",
+src_ph:"chef, livre, lien…",same_num:"Les ingrédients ajoutés ensemble ont le même numéro.",qty:"qté",ingredient:"ingrédient",add_ing:"+ ingrédient",
+method_hint:"Une étape par ligne. Écrivez (1), (2)… pour les numéros d'ingrédients.",steps_ph:"Faire fondre (1) et fouetter.&#10;Ajouter (3) à (2) un par un.",
+tip_line:"Une astuce par ligne.",save_recipe:"Enregistrer",cancel:"annuler",preview:"aperçu",remove:"supprimer",
+need_title:"Donnez-lui d'abord un titre.",no_storage:"Le stockage n'est pas disponible ici.",saving:"Enregistrement…",no_perm:"Vous n'avez pas le droit de modifier ce carnet.",
+save_err:"Échec de l'enregistrement ({0}). Réessayez.",conv_na:"Le convertisseur n'est pas disponible ici.",paste_first:"Collez d'abord le texte de la recette.",
+photo_first:"Choisissez ou prenez d'abord une photo.",photo_na:"La lecture de photos n'est pas disponible ici.",converting:"Conversion… cela prend en général 10 à 30 secondes.",
+converted:"Converti. Vérifiez tout ci-dessous (surtout les numéros), puis enregistrez.",not_granted:"L'autorisation d'utiliser Claude a été refusée : le convertisseur ne peut pas fonctionner.",
+rate:"Trop de conversions d'affilée. Attendez une minute et réessayez.",garbled:"Le résultat est illisible. Réessayez.",conv_err:"Échec de la conversion ({0}). Réessayez.",
+del_confirm:"Cliquez encore pour supprimer",del_err:"Échec de la suppression ({0})"},
+en:{nav_home:"Home",nav_recipes:"Recipes",nav_ing:"Ingredients",nav_new:"+ New",
+cat_starter:"Starters",cat_main:"Mains",cat_dessert:"Desserts & pastry",cat_basics:"Basics",lang_fr:"French",lang_en:"English",
+loading:"Opening the notebook…",slow:"Can't reach your recipes yet. Check your connection — the page will fill in on its own.",
+nodb:"Recipe storage isn't available in this view. Open the page on claude.ai while signed in.",loaderr:"Couldn't load recipes ({0}).",
+home_h1:"What are we cooking?",home_ph:"a recipe, an ingredient, a word…",search:"Search",nb_one:"{0} recipe in the notebook",nb_many:"{0} recipes in the notebook",
+last_added:"Last added",empty_nb:"The notebook is empty.",add_first:"Add your first recipe",no_match:"No recipe matches.",
+res_one:"{0} recipe",res_many:"{0} recipes",favs_empty:"Open a few recipes — the ones you look at most will show up here.",
+recipes_h1:"Recipes",rq_ph:"title, ingredient, step… (try “flour” or “farine”)",all:"All",any_lang:"Any language",most_viewed:"Most viewed",
+no_ing_name:"No ingredient by that name in your recipes yet.",no_recipe_uses:"No recipe uses “{0}” yet.",
+pick_ing:"Pick one or more ingredients above — recipes using all of them appear here.",no_combo:"No recipe uses all of these together.",
+ing_h1:"Ingredients",ing_intro:"Got a zucchini? Type it (French or English) or tap ingredients below.",iq_ph:"zucchini, courgette, flour…",
+clear_sel:"clear selection",not_found:"Recipe not found.",back_recipes:"Back to recipes",back_link:"← recipes",from:"from",
+ingredients:"Ingredients",method:"Method",tap_num:"Tap a number to see its ingredients.",notes:"Notes & tips",edit:"Edit",del:"Delete",
+viewed:"Viewed {0}× · added {1}",convert_h2:"Convert",
+conv_intro:"Paste a recipe from a website, or take a photo of a notebook page. It fills in the form below in your numbered format — check it, then save.",
+paste_text:"Paste text",photo_page:"Photo of a page",c_text_ph:"On the recipe's web page: select all (Ctrl+A), copy (Ctrl+C), paste here.",
+c_url_ph:"link to the page (optional — saved as the source)",convert_btn:"Convert",photo_hint:"One recipe at a time; add 2 photos if it runs over two pages.",
+read_photo:"Read the photo",link_only:"Only have a link? Paste it to Claude in chat and it can add the recipe for you.",
+edit_recipe:"Edit recipe",new_recipe:"New recipe",title:"Title",category:"Category",language:"Language",source:"Source",optional:"(optional)",
+src_ph:"chef, book, link…",same_num:"Ingredients that go in together get the same number.",qty:"qty",ingredient:"ingredient",add_ing:"+ ingredient",
+method_hint:"One step per line. Write (1), (2)… for ingredient numbers.",steps_ph:"Melt (1) and whisk.&#10;Add (3) to (2) one by one.",
+tip_line:"One tip per line.",save_recipe:"Save recipe",cancel:"cancel",preview:"preview",remove:"remove",
+need_title:"Give it a title first.",no_storage:"Storage isn't available in this view.",saving:"Saving…",no_perm:"You don't have permission to edit this notebook.",
+save_err:"Couldn't save ({0}). Try again.",conv_na:"The converter isn't available in this view.",paste_first:"Paste the recipe text first.",
+photo_first:"Choose or take a photo first.",photo_na:"Reading photos isn't available in this view.",converting:"Converting… this usually takes 10–30 seconds.",
+converted:"Converted. Check everything below (numbers especially), then Save.",not_granted:"Permission to use Claude was declined, so the converter can't run.",
+rate:"Too many conversions in a row. Wait a minute and try again.",garbled:"The result came back garbled. Try again.",conv_err:"Couldn't convert ({0}). Try again.",
+del_confirm:"Click again to delete",del_err:"Couldn't delete ({0})"}};
+let UI="fr";try{const v=localStorage.getItem("yumyum-lang");if(v==="en"||v==="fr")UI=v}catch(e){}
+function t(k,...a){let s=(I18N[UI]||{})[k];if(s==null)s=I18N.en[k];if(s==null)s=k;a.forEach((v,i)=>{s=s.replace("{"+i+"}",v)});return s}
+const CATS=[{id:"starter"},{id:"main"},{id:"dessert"},{id:"basics"}];
+const CAT=Object.fromEntries(CATS.map(c=>[c.id,c.id]));
+const LANGS={fr:"fr",en:"en"};
+const catLabel=id=>t("cat_"+id),langLabel=l=>t("lang_"+l);
 
 /* ---------- ingredient normalisation (FR / EN) ---------- */
 const RAW_GROUPS=[
@@ -156,7 +220,7 @@ function groupsForQuery(q){const n=norm(q);if(!n)return[];return GROUPS.filter(g
 const S={recipes:[],views:{},status:"loading",err:"",db:null,q:"",cat:"",lang:"",ingSel:[],ingQ:"",formFor:null,flash:""};
 const app=document.getElementById("app");
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fmtDate=d=>{try{return new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}catch(e){return""}};
+const fmtDate=d=>{try{return new Date(d).toLocaleDateString(UI==="fr"?"fr-FR":"en-GB",{day:"numeric",month:"short",year:"numeric"})}catch(e){return""}};
 const byTitle=(a,b)=>a.title.localeCompare(b.title,"fr",{sensitivity:"base"});
 
 function prep(id,d){
@@ -187,16 +251,16 @@ async function countView(id){
 
 /* ---------- pages ---------- */
 function statusHTML(){
-  if(S.status==="loading")return `<div class="empty muted">Opening the notebook…</div>`;
-  if(S.status==="slow")return `<div class="msg">Can't reach your recipes yet. Check your connection — the page will fill in on its own.</div>`;
-  if(S.status==="nodb")return `<div class="msg">Recipe storage isn't available in this view. Open the page on claude.ai while signed in.</div>`;
-  if(S.status==="error")return `<div class="msg">Couldn't load recipes (${esc(S.err)}).</div>`;
+  if(S.status==="loading")return `<div class="empty muted">${t("loading")}</div>`;
+  if(S.status==="slow")return `<div class="msg">${t("slow")}</div>`;
+  if(S.status==="nodb")return `<div class="msg">${t("nodb")}</div>`;
+  if(S.status==="error")return `<div class="msg">${t("loaderr",esc(S.err))}</div>`;
   return "";
 }
 function card(r,extra){
   const ing=r._ing.map(i=>esc(i.name)).filter(Boolean).slice(0,7).join(", ");
   return `<a class="rcard" href="#recipe-${r.id}"><div class="rt">${esc(r.title)}</div>
-    <div>${r.category?`<span class="tag">${esc(CAT[r.category]||r.category)}</span>`:""}${r.lang?`<span class="tag">${esc(r.lang)}</span>`:""}</div>
+    <div>${r.category?`<span class="tag">${esc(catLabel(r.category))}</span>`:""}${r.lang?`<span class="tag">${esc(r.lang)}</span>`:""}</div>
     <div class="ri">${extra||ing}</div></a>`;
 }
 
@@ -206,17 +270,17 @@ function pageHome(){
   const counts=Object.fromEntries(CATS.map(c=>[c.id,S.recipes.filter(r=>r.category===c.id).length]));
   return `
   <section>
-    <h1>What are we cooking?</h1>
-    <form id="homeSearch" class="searchrow"><input type="search" id="hq" placeholder="a recipe, an ingredient, a word…" autocomplete="off"><button class="btn dark">Search</button></form>
+    <h1>${t("home_h1")}</h1>
+    <form id="homeSearch" class="searchrow"><input type="search" id="hq" placeholder="${t("home_ph")}" autocomplete="off"><button class="btn dark">${t("search")}</button></form>
   </section>
   ${statusHTML()}
   <section>
-    <h2>${total} recipe${total===1?"":"s"} in the notebook</h2>
-    <div class="cats">${CATS.map(c=>`<button class="cat" data-cat="${c.id}"><b>${counts[c.id]}</b>${c.label}</button>`).join("")}</div>
+    <h2>${t(total===1?"nb_one":"nb_many",total)}</h2>
+    <div class="cats">${CATS.map(c=>`<button class="cat" data-cat="${c.id}"><b>${counts[c.id]}</b>${catLabel(c.id)}</button>`).join("")}</div>
   </section>
   <section>
-    <h2>Last added</h2>
-    ${latest?card(latest)+`<div class="small muted">${fmtDate(latest.createdAt)}</div>`:(S.status==="ok"?`<p>The notebook is empty. <a href="#add">Add your first recipe</a>.</p>`:"")}
+    <h2>${t("last_added")}</h2>
+    ${latest?card(latest)+`<div class="small muted">${fmtDate(latest.createdAt)}</div>`:(S.status==="ok"?`<p>${t("empty_nb")} <a href="#add" class="owner-only">${t("add_first")}</a></p>`:"")}
   </section>`;
 }
 
@@ -231,31 +295,31 @@ function filtered(){
 }
 function resultsHTML(){
   const list=filtered();
-  if(!list.length)return S.status==="ok"?`<p class="empty">No recipe matches.</p>`:"";
+  if(!list.length)return S.status==="ok"?`<p class="empty">${t("no_match")}</p>`:"";
   const groups={};
   list.forEach(r=>{let L=norm(r.title).charAt(0).toUpperCase();if(!/[A-Z]/.test(L))L="#";(groups[L]=groups[L]||[]).push(r)});
   const letters=Object.keys(groups).sort();
-  return `<div class="small muted">${list.length} recipe${list.length===1?"":"s"}</div>
+  return `<div class="small muted">${t(list.length===1?"res_one":"res_many",list.length)}</div>
     <div class="jump">${letters.map(L=>`<button data-jump="${L}">${L}</button>`).join("")}</div>
     ${letters.map(L=>`<div class="letter" id="L-${L}">${L}</div>${groups[L].map(r=>card(r)).join("")}`).join("")}`;
 }
 function favsHTML(){
   const top=S.recipes.filter(r=>S.views[r.id]>0).sort((a,b)=>S.views[b.id]-S.views[a.id]).slice(0,6);
-  if(!top.length)return `<p class="small muted">Open a few recipes — the ones you look at most will show up here.</p>`;
+  if(!top.length)return `<p class="small muted">${t("favs_empty")}</p>`;
   return `<ol class="favs">${top.map(r=>`<li><a href="#recipe-${r.id}">${esc(r.title)}</a> <span class="small muted">×${S.views[r.id]}</span></li>`).join("")}</ol>`;
 }
 function pageRecipes(){
   return `
   <section>
-    <h1>Recipes</h1>
-    <input type="search" id="rq" placeholder="title, ingredient, step… (try “flour” or “farine”)" value="${esc(S.q)}" autocomplete="off">
-    <div class="chips">${[{id:"",label:"All"},...CATS].map(c=>`<button class="chip ${S.cat===c.id?"on":""}" data-fcat="${c.id}">${c.label}</button>`).join("")}</div>
-    <div class="chips">${[["","Any language"],["fr","Français"],["en","English"]].map(([k,l])=>`<button class="chip ${S.lang===k?"on":""}" data-flang="${k}">${l}</button>`).join("")}</div>
+    <h1>${t("recipes_h1")}</h1>
+    <input type="search" id="rq" placeholder="${t("rq_ph")}" value="${esc(S.q)}" autocomplete="off">
+    <div class="chips">${[{id:""},...CATS].map(c=>`<button class="chip ${S.cat===c.id?"on":""}" data-fcat="${c.id}">${c.id?catLabel(c.id):t("all")}</button>`).join("")}</div>
+    <div class="chips">${[["",t("any_lang")],["fr",langLabel("fr")],["en",langLabel("en")]].map(([k,l])=>`<button class="chip ${S.lang===k?"on":""}" data-flang="${k}">${l}</button>`).join("")}</div>
   </section>
   ${statusHTML()}
   <section class="cols">
     <div id="results">${resultsHTML()}</div>
-    <aside class="owner-only"><h2>Most viewed</h2>${favsHTML()}</aside>
+    <aside class="owner-only"><h2>${t("most_viewed")}</h2>${favsHTML()}</aside>
   </section>`;
 }
 
@@ -268,7 +332,7 @@ function ingChipsHTML(){
   const all=allIngredients();const q=norm(S.ingQ);
   const qg=new Set(groupsForQuery(S.ingQ).map(g=>g.key));
   const shown=all.filter(i=>S.ingSel.includes(i.key)||!q||norm(i.label).includes(q)||qg.has(i.key));
-  if(!shown.length)return `<p class="small muted">${q?"No ingredient by that name in your recipes yet.":""}</p>`;
+  if(!shown.length)return `<p class="small muted">${q?t("no_ing_name"):""}</p>`;
   return shown.map(i=>`<button class="chip ${S.ingSel.includes(i.key)?"on":""}" data-ing="${esc(i.key)}">${esc(i.label)}<span class="c">${i.count}</span></button>`).join("");
 }
 function ingResultsHTML(){
@@ -277,11 +341,11 @@ function ingResultsHTML(){
     const g=groupsForQuery(S.ingQ).map(g=>g.key);
     const q=norm(S.ingQ);
     const list=S.recipes.filter(r=>g.some(k=>r._keys.has(k))||r._ing.some(i=>norm(i.name).includes(q))).sort(byTitle);
-    return list.length?list.map(r=>card(r,matchLine(r,k=>g.includes(k),q))).join(""):`<p class="empty">No recipe uses “${esc(S.ingQ)}” yet.</p>`;
+    return list.length?list.map(r=>card(r,matchLine(r,k=>g.includes(k),q))).join(""):`<p class="empty">${t("no_recipe_uses",esc(S.ingQ))}</p>`;
   }
-  if(!keys.length)return `<p class="muted">Pick one or more ingredients above — recipes using all of them appear here.</p>`;
+  if(!keys.length)return `<p class="muted">${t("pick_ing")}</p>`;
   const list=S.recipes.filter(r=>keys.every(k=>r._keys.has(k))).sort(byTitle);
-  return list.length?list.map(r=>card(r,matchLine(r,k=>keys.includes(k)))).join(""):`<p class="empty">No recipe uses all of these together.</p>`;
+  return list.length?list.map(r=>card(r,matchLine(r,k=>keys.includes(k)))).join(""):`<p class="empty">${t("no_combo")}</p>`;
 }
 function matchLine(r,isHit,q){
   return r._ing.map(i=>{const hit=isHit(i.c.key)||(q&&norm(i.name).includes(q));return hit?`<mark>${esc(i.qty?i.qty+" ":"")}${esc(i.name)}</mark>`:esc(i.name)}).join(", ");
@@ -289,38 +353,38 @@ function matchLine(r,isHit,q){
 function pageIngredients(){
   return `
   <section>
-    <h1>Ingredients</h1>
-    <p class="muted">Got a zucchini? Type it (French or English) or tap ingredients below.</p>
-    <input type="search" id="iq" placeholder="zucchini, courgette, farine…" value="${esc(S.ingQ)}" autocomplete="off">
+    <h1>${t("ing_h1")}</h1>
+    <p class="muted">${t("ing_intro")}</p>
+    <input type="search" id="iq" placeholder="${t("iq_ph")}" value="${esc(S.ingQ)}" autocomplete="off">
     <div class="chips" id="ingChips">${ingChipsHTML()}</div>
-    ${S.ingSel.length?`<p class="small"><button class="btn link" id="clearIng">clear selection</button></p>`:""}
+    ${S.ingSel.length?`<p class="small"><button class="btn link" id="clearIng">${t("clear_sel")}</button></p>`:""}
   </section>
   ${statusHTML()}
-  <section><h2>Recipes</h2><div id="ingResults">${ingResultsHTML()}</div></section>`;
+  <section><h2>${t("recipes_h1")}</h2><div id="ingResults">${ingResultsHTML()}</div></section>`;
 }
 
 function pageRecipe(id){
   const r=S.recipes.find(x=>x.id===id);
-  if(!r)return statusHTML()||`<section><p>Recipe not found. <a href="#recipes">Back to recipes</a></p></section>`;
+  if(!r)return statusHTML()||`<section><p>${t("not_found")} <a href="#recipes">${t("back_recipes")}</a></p></section>`;
   const hasNums=r._ing.some(i=>i.n!=null&&i.n!=="");
   return `
   <section>
-    <p class="small"><a href="#recipes">← recipes</a></p>
-    <div>${r.category?`<span class="tag">${esc(CAT[r.category]||r.category)}</span>`:""}${r.lang?`<span class="tag">${esc(LANGS[r.lang]||r.lang)}</span>`:""}</div>
+    <p class="small"><a href="#recipes">${t("back_link")}</a></p>
+    <div>${r.category?`<span class="tag">${esc(catLabel(r.category))}</span>`:""}${r.lang?`<span class="tag">${esc(langLabel(r.lang))}</span>`:""}</div>
     <h1 class="title">${esc(r.title)}</h1>
-    ${r.source?`<div class="muted">from ${/^https?:\/\//.test(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`:esc(r.source)}</div>`:""}
+    ${r.source?`<div class="muted">${t("from")} ${/^https?:\/\//.test(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`:esc(r.source)}</div>`:""}
   </section>
   <section>
-    <h2>Ingredients</h2>
+    <h2>${t("ingredients")}</h2>
     <table class="ing">${r._ing.map(i=>`<tr data-g="${esc(i.n??"")}"><td class="q">${esc(i.qty)}</td><td>${esc(i.name)}</td>${hasNums?`<td class="n">${i.n!=null&&i.n!==""?`<span class="num" data-g="${esc(i.n)}">${esc(i.n)}</span>`:""}</td>`:""}</tr>`).join("")}</table>
   </section>
-  ${r.steps.length?`<section><h2>Method</h2>${hasNums?`<p class="small muted">Tap a number to see its ingredients.</p>`:""}<ol class="steps">${r.steps.map(s=>`<li>${stepHTML(s)}</li>`).join("")}</ol></section>`:""}
-  ${r.notes.length?`<section><h2>Notes & tips</h2><ul class="notes">${r.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></section>`:""}
+  ${r.steps.length?`<section><h2>${t("method")}</h2>${hasNums?`<p class="small muted">${t("tap_num")}</p>`:""}<ol class="steps">${r.steps.map(s=>`<li>${stepHTML(s)}</li>`).join("")}</ol></section>`:""}
+  ${r.notes.length?`<section><h2>${t("notes")}</h2><ul class="notes">${r.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></section>`:""}
   <section class="owner-only">
     <div class="actions">
-      <a class="btn" href="#edit-${r.id}" style="text-decoration:none">Edit</a>
-      <button class="btn danger" id="del" data-id="${r.id}">Delete</button>
-      <span class="small muted">Viewed ${S.views[r.id]||0}× · added ${fmtDate(r.createdAt)}</span>
+      <a class="btn" href="#edit-${r.id}" style="text-decoration:none">${t("edit")}</a>
+      <button class="btn danger" id="del" data-id="${r.id}">${t("del")}</button>
+      <span class="small muted">${t("viewed",S.views[r.id]||0,fmtDate(r.createdAt))}</span>
     </div>
   </section>`;
 }
@@ -328,84 +392,84 @@ function pageRecipe(id){
 function converterHTML(){
   return `
   <section id="conv">
-    <h2>Convert</h2>
-    <p class="small muted">Paste a recipe from a website, or take a photo of a notebook page. It fills in the form below in your numbered format — check it, then save.</p>
+    <h2>${t("convert_h2")}</h2>
+    <p class="small muted">${t("conv_intro")}</p>
     <div class="chips">
-      <button class="chip ${S.cmode!=="photo"?"on":""}" data-cmode="text">Paste text</button>
-      <button class="chip ${S.cmode==="photo"?"on":""}" data-cmode="photo">Photo of a page</button>
+      <button class="chip ${S.cmode!=="photo"?"on":""}" data-cmode="text">${t("paste_text")}</button>
+      <button class="chip ${S.cmode==="photo"?"on":""}" data-cmode="photo">${t("photo_page")}</button>
     </div>
     <div id="cText" ${S.cmode==="photo"?"hidden":""} style="margin-top:12px">
-      <textarea id="c-text" rows="6" placeholder="On the recipe's web page: select all (Ctrl+A), copy (Ctrl+C), paste here."></textarea>
-      <input type="text" id="c-url" placeholder="link to the page (optional — saved as the source)" style="margin-top:6px">
-      <p><button class="btn dark" id="cGo">Convert</button></p>
+      <textarea id="c-text" rows="6" placeholder="${t("c_text_ph")}"></textarea>
+      <input type="text" id="c-url" placeholder="${t("c_url_ph")}" style="margin-top:6px">
+      <p><button class="btn dark" id="cGo">${t("convert_btn")}</button></p>
     </div>
     <div id="cPhoto" ${S.cmode==="photo"?"":"hidden"} style="margin-top:12px">
       <input type="file" id="c-files" accept="image/*" multiple>
-      <p class="small muted">One recipe at a time; add 2 photos if it runs over two pages.</p>
-      <p><button class="btn dark" id="cGoP">Read the photo</button></p>
+      <p class="small muted">${t("photo_hint")}</p>
+      <p><button class="btn dark" id="cGoP">${t("read_photo")}</button></p>
     </div>
     <div id="cMsg" class="small"></div>
-    <p class="small muted">Only have a link? Paste it to Claude in chat and it can add the recipe for you.</p>
+    <p class="small muted">${t("link_only")}</p>
   </section>`;
 }
 function pageForm(id){
   const editing=!!id;
   const r=id?S.recipes.find(x=>x.id===id):S.draft;
-  if(id&&!r)return statusHTML()||`<section><p>Recipe not found.</p></section>`;
+  if(id&&!r)return statusHTML()||`<section><p>${t("not_found")}</p></section>`;
   const ing=r?r.ingredients:[{qty:"",name:"",n:1},{qty:"",name:"",n:1},{qty:"",name:"",n:2}];
   return `
   ${editing||S.sampleOK===false?"":converterHTML()}
   <section>
-    <h1 id="formTop">${editing?"Edit recipe":"New recipe"}</h1>
+    <h1 id="formTop">${editing?t("edit_recipe"):t("new_recipe")}</h1>
     ${S.flash?`<div class="msg">${esc(S.flash)}</div>`:""}
     <form id="rform" data-id="${editing?r.id:""}">
-      <div class="field"><label for="f-title">Title</label><input type="text" id="f-title" required value="${esc(r?.title)}"></div>
+      <div class="field"><label for="f-title">${t("title")}</label><input type="text" id="f-title" required value="${esc(r?.title)}"></div>
       <div class="row3">
-        <div class="field"><label for="f-cat">Category</label><select id="f-cat">${CATS.map(c=>`<option value="${c.id}" ${r?.category===c.id?"selected":""}>${c.label}</option>`).join("")}</select></div>
-        <div class="field"><label for="f-lang">Language</label><select id="f-lang">${Object.entries(LANGS).map(([k,l])=>`<option value="${k}" ${(r?.lang||"fr")===k?"selected":""}>${l}</option>`).join("")}</select></div>
-        <div class="field"><label for="f-src">Source <span class="muted small">(optional)</span></label><input type="text" id="f-src" value="${esc(r?.source)}" placeholder="chef, book, link…"></div>
+        <div class="field"><label for="f-cat">${t("category")}</label><select id="f-cat">${CATS.map(c=>`<option value="${c.id}" ${r?.category===c.id?"selected":""}>${catLabel(c.id)}</option>`).join("")}</select></div>
+        <div class="field"><label for="f-lang">${t("language")}</label><select id="f-lang">${Object.entries(LANGS).map(([k,l])=>`<option value="${k}" ${(r?.lang||"fr")===k?"selected":""}>${langLabel(k)}</option>`).join("")}</select></div>
+        <div class="field"><label for="f-src">${t("source")} <span class="muted small">${t("optional")}</span></label><input type="text" id="f-src" value="${esc(r?.source)}" placeholder="${t("src_ph")}"></div>
       </div>
     </form>
   </section>
   <section>
-    <h2>Ingredients</h2>
-    <p class="small muted">Ingredients that go in together get the same number.</p>
-    <div class="ingHead ingrow" style="margin-bottom:2px;font-size:12px;color:var(--muted)"><span>qty</span><span>ingredient</span><span>nº</span><span></span></div>
+    <h2>${t("ingredients")}</h2>
+    <p class="small muted">${t("same_num")}</p>
+    <div class="ingHead ingrow" style="margin-bottom:2px;font-size:12px;color:var(--muted)"><span>${t("qty")}</span><span>${t("ingredient")}</span><span>nº</span><span></span></div>
     <div id="ingRows">${ing.map(ingRowHTML).join("")}</div>
-    <button class="btn" id="addIng">+ ingredient</button>
+    <button class="btn" id="addIng">${t("add_ing")}</button>
   </section>
   <section>
-    <h2>Method</h2>
-    <p class="small muted">One step per line. Write (1), (2)… for ingredient numbers.</p>
-    <textarea id="f-steps" rows="8" placeholder="Melt (1) and whisk.&#10;Add (3) to (2) one by one.">${esc((r?.steps||[]).join("\n"))}</textarea>
+    <h2>${t("method")}</h2>
+    <p class="small muted">${t("method_hint")}</p>
+    <textarea id="f-steps" rows="8" placeholder="${t("steps_ph")}">${esc((r?.steps||[]).join("\n"))}</textarea>
     <div class="preview" id="stepPrev"></div>
   </section>
   <section>
-    <h2>Notes & tips</h2>
-    <p class="small muted">One tip per line.</p>
+    <h2>${t("notes")}</h2>
+    <p class="small muted">${t("tip_line")}</p>
     <textarea id="f-notes" rows="4">${esc((r?.notes||[]).join("\n"))}</textarea>
   </section>
   <section class="actions">
-    <button class="btn dark" id="save">Save recipe</button>
-    <a href="${editing?"#recipe-"+r.id:"#recipes"}">cancel</a>
+    <button class="btn dark" id="save">${t("save_recipe")}</button>
+    <a href="${editing?"#recipe-"+r.id:"#recipes"}">${t("cancel")}</a>
     <span id="saveMsg" class="small"></span>
   </section>`;
 }
 function ingRowHTML(i){
-  return `<div class="ingrow"><input type="text" class="i-q" value="${esc(i.qty)}" placeholder="200 g"><input type="text" class="i-n" value="${esc(i.name)}" placeholder="chocolat"><input type="number" min="1" max="20" class="i-g" value="${esc(i.n??"")}"><button class="btn rm" title="remove" aria-label="remove">✕</button></div>`;
+  return `<div class="ingrow"><input type="text" class="i-q" value="${esc(i.qty)}" placeholder="200 g"><input type="text" class="i-n" value="${esc(i.name)}" placeholder="chocolat"><input type="number" min="1" max="20" class="i-g" value="${esc(i.n??"")}"><button class="btn rm" title="${t("remove")}" aria-label="${t("remove")}">✕</button></div>`;
 }
 function updatePreview(){
   const t=document.getElementById("f-steps");const p=document.getElementById("stepPrev");if(!t||!p)return;
   const lines=t.value.split("\n").map(s=>s.trim()).filter(Boolean);
-  p.innerHTML=lines.length?`<ol class="steps">${lines.map(s=>`<li>${stepHTML(s)}</li>`).join("")}</ol>`:`<span class="small muted">preview</span>`;
+  p.innerHTML=lines.length?`<ol class="steps">${lines.map(s=>`<li>${stepHTML(s)}</li>`).join("")}</ol>`:`<span class="small muted">${t("preview")}</span>`;
 }
 function slugify(s){return norm(s).replace(/ /g,"-").slice(0,40)||"recette"}
 async function saveForm(){
   const msg=document.getElementById("saveMsg");
   const f=document.getElementById("rform");
   const title=document.getElementById("f-title").value.trim();
-  if(!title){msg.textContent="Give it a title first.";return}
-  if(!S.db){msg.textContent="Storage isn't available in this view.";return}
+  if(!title){msg.textContent=t("need_title");return}
+  if(!S.db){msg.textContent=t("no_storage");return}
   const ingredients=[...document.querySelectorAll("#ingRows .ingrow")].map(row=>{
     const qty=row.querySelector(".i-q").value.trim(),name=row.querySelector(".i-n").value.trim(),g=row.querySelector(".i-g").value.trim();
     return {qty,name,n:g?parseInt(g,10):null};
@@ -417,9 +481,9 @@ async function saveForm(){
   const data={title,category:document.getElementById("f-cat").value,lang:document.getElementById("f-lang").value,
     source:document.getElementById("f-src").value.trim(),ingredients,steps:lines("f-steps"),notes:lines("f-notes"),
     createdAt:existing?.createdAt||now,updatedAt:now};
-  const btn=document.getElementById("save");btn.disabled=true;msg.textContent="Saving…";
+  const btn=document.getElementById("save");btn.disabled=true;msg.textContent=t("saving");
   try{await S.db.doc("recipes/"+id).set(data);location.hash="recipe-"+id}
-  catch(e){btn.disabled=false;msg.textContent=e&&e.code==="invalid_argument"?"You don't have permission to edit this notebook.":"Couldn't save ("+(e&&e.code||"error")+"). Try again."}
+  catch(e){btn.disabled=false;msg.textContent=e&&e.code==="invalid_argument"?t("no_perm"):t("save_err",e&&e.code||"error")}
 }
 
 /* ---------- converter (asks Claude) ---------- */
@@ -459,39 +523,51 @@ async function shrink(file){
 async function convert(kind){
   const msg=document.getElementById("cMsg");
   const s=await getSample();
-  if(!s){msg.textContent="The converter isn't available in this view.";return}
+  if(!s){msg.textContent=t("conv_na");return}
   let input,url="";const opts={modelTier:"default"};
   if(kind==="text"){
     const text=document.getElementById("c-text").value.trim();url=document.getElementById("c-url").value.trim();
-    if(text.length<40){msg.textContent="Paste the recipe text first.";return}
+    if(text.length<40){msg.textContent=t("paste_first");return}
     input=`${FORMAT}\n\nSOURCE LINK: ${url||"none"}\n\nThe text below was copied from a web page; ignore menus, ads, comments and unrelated content.\n\nRECIPE TEXT:\n"""\n${text.slice(0,30000)}\n"""`;
   }else{
     const files=[...document.getElementById("c-files").files];
-    if(!files.length){msg.textContent="Choose or take a photo first.";return}
+    if(!files.length){msg.textContent=t("photo_first");return}
     let lim={};try{lim=await s.limits()}catch(e){}
-    if(!lim||!lim.images){msg.textContent="Reading photos isn't available in this view.";return}
+    if(!lim||!lim.images){msg.textContent=t("photo_na");return}
     opts.images=await Promise.all(files.slice(0,4).map(f=>shrink(f).catch(()=>f)));
     input=`${FORMAT}\n\nThe image(s) show one handwritten page of the notebook, already in this format: a title, ingredients with a quantity and a circled number, then steps that use those numbers, sometimes tips at the end. Transcribe faithfully: keep the existing numbers, the original wording and language; only fix obvious spelling. Ingredients without a circled number get null. Ignore children's drawings or unrelated scribbles. Mark unreadable words with [?].`;
   }
   const btns=document.querySelectorAll("#cGo,#cGoP");btns.forEach(b=>b.disabled=true);
-  msg.textContent="Converting… this usually takes 10–30 seconds.";
+  msg.textContent=t("converting");
   try{
     const res=await s(input,opts);
     S.draft=cleanDraft(parseJSON(res.text),url);
-    S.flash="Converted. Check everything below (numbers especially), then Save.";
+    S.flash=t("converted");
     S.formFor=null;render();
     const top=document.getElementById("formTop");top&&top.scrollIntoView({behavior:"smooth"});
   }catch(e){
     btns.forEach(b=>b.disabled=false);
     const c=e&&e.code;
-    msg.textContent=c==="not_granted"?"Permission to use Claude was declined, so the converter can't run."
-      :c==="rate_limited"?"Too many conversions in a row. Wait a minute and try again."
-      :c==="bad_output"||e instanceof SyntaxError?"The result came back garbled. Try again."
-      :"Couldn't convert ("+(c||"error")+"). Try again.";
+    msg.textContent=c==="not_granted"?t("not_granted")
+      :c==="rate_limited"?t("rate")
+      :c==="bad_output"||e instanceof SyntaxError?t("garbled")
+      :t("conv_err",c||"error");
   }
 }
 
 /* ---------- render + events ---------- */
+const t_=(...a)=>t(...a);
+function applyUI(){
+  document.documentElement.lang=UI;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{el.textContent=t(el.dataset.i18n)});
+  const b=document.getElementById("langToggle");
+  if(b)b.innerHTML=UI==="fr"?"<b>FR</b> <span>EN</span>":"<span>FR</span> <b>EN</b>";
+}
+document.getElementById("langToggle").addEventListener("click",()=>{
+  UI=UI==="fr"?"en":"fr";try{localStorage.setItem("yumyum-lang",UI)}catch(e){}
+  applyUI();
+  const r=route();if(!((r==="add"||r.startsWith("edit-"))&&S.formFor===r))render();
+});
 function render(){
   const r=route();
   if((r==="add"||r.startsWith("edit-"))&&S.formFor===r)return; // don't wipe a form being filled
@@ -505,6 +581,7 @@ function render(){
   else if(r.startsWith("edit-"))html=pageForm(r.slice(5));
   else html=pageHome();
   app.innerHTML=html;
+  applyUI();
   document.querySelectorAll("nav a").forEach(n=>n.classList.toggle("on",n.dataset.nav===(r.startsWith("recipe-")?"recipes":r.startsWith("edit-")?"":r)));
   if(r==="add"||(r.startsWith("edit-")&&S.recipes.some(x=>x.id===r.slice(5)))){S.formFor=r;updatePreview()}
   if(aid){const el=document.getElementById(aid);if(el&&el.tagName==="INPUT"){el.focus();try{el.setSelectionRange(pos,pos)}catch(e){}}}
@@ -535,11 +612,11 @@ app.addEventListener("click",e=>{
     return;
   }
   if(t.id==="del"){
-    if(!t.dataset.armed){t.dataset.armed="1";t.textContent="Click again to delete";return}
+    if(!t.dataset.armed){t.dataset.armed="1";t.textContent=t_("del_confirm");return}
     const id=t.dataset.id;t.disabled=true;
     Promise.all([S.db.doc("recipes/"+id).delete(),S.db.doc("views/"+id).delete()])
       .then(()=>{location.hash="recipes"})
-      .catch(err=>{t.disabled=false;t.textContent="Couldn't delete ("+(err&&err.code||"error")+")"});
+      .catch(err=>{t.disabled=false;t.textContent=t_("del_err",err&&err.code||"error")});
     return;
   }
   if(t.id==="addIng"){
