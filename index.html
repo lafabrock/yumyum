@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Carnet — recipes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdfdfb; --ink:#1b1b1b; --muted:#6e6e6e; --soft:#f1f0ea; --hl:#fff1a8;
+    --dots:4px dotted var(--ink);
+    --red:#b0214b; --red-soft:#f7e3e9;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink)}
+  body{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.55}
+  a{color:inherit}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .wrap{max-width:860px;margin:0 auto;padding:0 18px 60px}
+
+  header{border-top:12px solid var(--red);border-bottom:4px dotted var(--red)}
+  header .wrap{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 22px;padding-top:18px;padding-bottom:14px}
+  .brand{font-weight:600;font-size:20px;text-decoration:none;margin-right:auto;color:var(--red)}
+  nav{display:flex;gap:16px;flex-wrap:wrap}
+  nav a{text-decoration:none;padding:2px 0;border-bottom:2px solid transparent}
+  nav a.on{border-bottom-color:var(--red);color:var(--red)}
+  nav a.new{font-weight:600;color:var(--red)}
+
+  section{padding:22px 0;border-bottom:var(--dots)}
+  section:last-child{border-bottom:none}
+  h1{font-size:24px;margin:0 0 12px;font-weight:600}
+  h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 12px;font-weight:600}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+
+  input[type=search],input[type=text],input[type=number],select,textarea{
+    border:2px solid var(--ink);background:#fff;padding:9px 11px;border-radius:0;width:100%;outline:none}
+  input:focus,select:focus,textarea:focus{box-shadow:4px 4px 0 var(--ink)}
+  .btn{border:2px solid var(--ink);background:#fff;padding:8px 14px;cursor:pointer;border-radius:0}
+  .btn:hover{background:var(--soft)}
+  .btn.dark{background:var(--red);border-color:var(--red);color:#fff}
+  .btn.dark:hover{background:#8f1a3c}
+  .btn.danger{border-color:#a32b1d;color:#a32b1d}
+  .btn.link{border:none;background:none;padding:0;text-decoration:underline;cursor:pointer}
+  .searchrow{display:flex;gap:8px}
+  .searchrow input{flex:1}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{border:2px solid var(--ink);background:#fff;padding:3px 10px;cursor:pointer;font-size:13px}
+  .chip.on{background:var(--red);border-color:var(--red);color:#fff}
+  .chip .c{opacity:.6;margin-left:4px}
+
+  .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .cat{border:2px solid var(--ink);padding:12px;text-align:left;background:#fff;cursor:pointer}
+  .cat b{display:block;font-size:30px;line-height:1.1;color:var(--red)}
+  .cat:hover{background:var(--soft)}
+  @media (max-width:640px){.cats{grid-template-columns:repeat(2,1fr)}}
+
+  .rcard{display:block;text-decoration:none;padding:12px 0;border-bottom:2px dotted #bbb}
+  .rcard:last-child{border-bottom:none}
+  .rcard:hover .rt{text-decoration:underline}
+  .rt{font-weight:600;font-size:17px}
+  .tag{display:inline-block;border:1.5px solid var(--ink);padding:0 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-right:4px;vertical-align:2px}
+  .ri{color:var(--muted);font-size:13px;margin-top:2px}
+  .ri mark{background:var(--hl);color:var(--ink)}
+
+  .cols{display:grid;grid-template-columns:1fr 230px;gap:28px}
+  .cols aside{border-left:var(--dots);padding-left:22px}
+  @media (max-width:700px){.cols{grid-template-columns:1fr}.cols aside{border-left:none;padding-left:0;border-top:var(--dots);padding-top:18px}}
+  .letter{font-weight:600;font-size:20px;margin:16px 0 0;color:var(--red);border-bottom:2px solid var(--red);display:inline-block;padding-right:10px}
+  .jump{display:flex;flex-wrap:wrap;gap:4px;margin:14px 0 0}
+  .jump button{border:none;background:none;padding:2px 5px;cursor:pointer;text-decoration:underline}
+  ol.favs{padding-left:20px;margin:0}
+  ol.favs li{margin-bottom:6px}
+
+  /* recipe page */
+  .title{font-size:30px;margin:6px 0 4px}
+  table.ing{border-collapse:collapse;width:100%;max-width:560px}
+  table.ing td{padding:6px 8px;border-bottom:2px dotted #c9c9c9;vertical-align:middle}
+  table.ing td.q{white-space:nowrap;width:1%;font-weight:600}
+  table.ing td.n{width:1%;text-align:right}
+  table.ing tr.hl td{background:var(--red-soft)}
+  .num{display:inline-flex;align-items:center;justify-content:center;min-width:1.7em;height:1.7em;padding:0 .3em;border:2px solid var(--ink);border-radius:999px;font-weight:600;font-size:.85em;line-height:1;cursor:pointer;background:#fff;vertical-align:.05em}
+  .num.on{background:var(--red);border-color:var(--red);color:#fff}
+  ol.steps{padding-left:0;list-style:none;counter-reset:s;margin:0}
+  ol.steps li{counter-increment:s;padding:7px 0 7px 38px;position:relative;font-size:16px}
+  ol.steps li::before{content:counter(s) ".";position:absolute;left:0;color:var(--muted)}
+  ul.notes{margin:0;padding-left:20px}
+  ul.notes li{margin-bottom:4px}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  /* form */
+  .field{margin-bottom:16px}
+  .field label{display:block;font-weight:600;margin-bottom:5px}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:640px){.row3{grid-template-columns:1fr}}
+  .ingrow{display:grid;grid-template-columns:120px 1fr 70px 40px;gap:6px;margin-bottom:6px}
+  .ingrow .btn{padding:0}
+  .inghead{display:grid;grid-template-columns:120px 1fr 70px 40px;gap:6px;font-size:12px;color:var(--muted);margin-bottom:4px}
+  @media (max-width:520px){.ingrow,.inghead{grid-template-columns:90px 1fr 56px 34px}}
+  .preview{border:2px dashed #bbb;padding:8px 12px;margin-top:8px}
+  .msg{padding:10px 12px;border:2px solid var(--ink);background:var(--hl);margin:14px 0}
+  .empty{padding:18px 0}
+  body.static .owner-only{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="#home">▢ le carnet</a>
+  <nav>
+    <a href="#home" data-nav="home">Home</a>
+    <a href="#recipes" data-nav="recipes">Recipes</a>
+    <a href="#ingredients" data-nav="ingredients">Ingredients</a>
+    <a href="#add" data-nav="add" class="new owner-only">+ New</a>
+  </nav>
+</div></header>
+<main class="wrap" id="app"></main>
+
+<script>
+const CATS=[{id:"starter",label:"Starters"},{id:"main",label:"Mains"},{id:"dessert",label:"Desserts & pastry"},{id:"basics",label:"Basics"}];
+const CAT=Object.fromEntries(CATS.map(c=>[c.id,c.label]));
+const LANGS={fr:"Français",en:"English"};
+
+/* ---------- ingredient normalisation (FR / EN) ---------- */
+const RAW_GROUPS=[
+ ["Pomme de terre","potato"],["Poivron","bell pepper"],["Pois chiche","chickpea"],
+ ["Farine","flour"],["Beurre","butter"],["Sucre","sugar","cassonade","vergeoise"],["Œuf","egg"],["Lait","milk"],
+ ["Sel","salt"],["Poivre","pepper"],["Chocolat","chocolate","choc"],["Cacao","cocoa"],["Levure","baking powder","yeast"],
+ ["Vanille","vanilla"],["Huile","oil"],["Eau","water"],["Crème","cream"],["Café","coffee","espresso"],
+ ["Courgette","zucchini"],["Courge","squash","potiron","pumpkin","butternut"],["Tomate","tomato"],["Oignon","onion"],
+ ["Échalote","shallot"],["Ail","garlic"],["Citron","lemon"],["Pomme","apple"],["Carotte","carrot"],["Fromage","cheese"],
+ ["Poulet","chicken"],["Bœuf","beef"],["Porc","pork"],["Lardons","bacon"],["Riz","rice"],["Miel","honey"],
+ ["Amande","almond"],["Noisette","hazelnut"],["Épinard","spinach"],["Champignon","mushroom"],["Aubergine","eggplant"],
+ ["Persil","parsley"],["Basilic","basil"],["Thym","thyme"],["Moutarde","mustard"],["Vinaigre","vinegar"],
+ ["Yaourt","yogurt","yoghurt"],["Cannelle","cinnamon"],["Gingembre","ginger"],["Coriandre","coriander","cilantro"],
+ ["Cumin","cumin"],["Lentille","lentil"],["Saumon","salmon"],["Thon","tuna"],["Crevette","shrimp","prawn"],
+ ["Poireau","leek"],["Concombre","cucumber"],["Banane","banana"],["Fraise","strawberry"],["Framboise","raspberry"],
+ ["Orange","orange"],["Brocoli","broccoli"]
+];
+function sing(w){if(w.length>4&&w.endsWith("ies"))return w.slice(0,-3)+"y";if(w.length>3&&/[sx]$/.test(w)&&!w.endsWith("ss"))return w.slice(0,-1);return w}
+function norm(s){return String(s||"").toLowerCase().replace(/œ/g,"oe").replace(/æ/g,"ae").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim().split(" ").filter(Boolean).map(sing).join(" ")}
+const GROUPS=RAW_GROUPS.map(g=>({key:"g:"+norm(g[0]),label:norm(g[0])===norm(g[1])?g[0]:g[0]+" · "+g[1],terms:g.map(norm)}));
+const STOP=new Set(["de","d","du","des","la","le","l","of","the","a","un","une"]);
+function hasWord(hay,term){return (" "+hay+" ").includes(" "+term+" ")}
+function canon(name){
+  const n=norm(name);
+  for(const g of GROUPS) if(g.terms.some(t=>hasWord(n,t))) return {key:g.key,label:g.label};
+  const k=n.split(" ").filter(w=>!STOP.has(w)).join(" ");
+  const label=String(name||"").replace(/[?!.]+$/,"").trim();
+  return {key:"x:"+k,label:label.charAt(0).toUpperCase()+label.slice(1)};
+}
+function groupsForQuery(q){const n=norm(q);if(!n)return[];return GROUPS.filter(g=>g.terms.some(t=>t===n||t.startsWith(n)||hasWord(t,n)))}
+
+/* ---------- state ---------- */
+const S={recipes:[],views:{},status:"loading",err:"",db:null,q:"",cat:"",lang:"",ingSel:[],ingQ:"",formFor:null,flash:""};
+const app=document.getElementById("app");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtDate=d=>{try{return new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}catch(e){return""}};
+const byTitle=(a,b)=>a.title.localeCompare(b.title,"fr",{sensitivity:"base"});
+
+function prep(id,d){
+  const ingredients=Array.isArray(d.ingredients)?d.ingredients:[];
+  const r={id,title:d.title||"(untitled)",category:d.category||"",lang:d.lang||"",source:d.source||"",
+    ingredients,steps:Array.isArray(d.steps)?d.steps:[],notes:Array.isArray(d.notes)?d.notes:[],
+    createdAt:d.createdAt||"",updatedAt:d.updatedAt||""};
+  r._ing=ingredients.map(i=>({...i,c:canon(i.name)}));
+  r._keys=new Set(r._ing.map(i=>i.c.key));
+  r._hay=norm([r.title,r.source,...ingredients.map(i=>i.name),...r._ing.map(i=>i.c.label),...r.steps,...r.notes].join(" "));
+  return r;
+}
+
+/* ---------- step rendering with ingredient numbers ---------- */
+const NUM_RE=/\((\d{1,2})\)|\[(\d{1,2})\]|([①-⑳])/g;
+function stepHTML(text){
+  return esc(text).replace(NUM_RE,(m,a,b,c)=>{const n=a||b||(c.charCodeAt(0)-0x245F);return `<span class="num" data-g="${n}">${n}</span>`});
+}
+
+/* ---------- routing ---------- */
+function route(){return (location.hash||"#home").slice(1)||"home"}
+window.addEventListener("hashchange",()=>{const r=route();if(r.startsWith("recipe-"))countView(r.slice(7));S.formFor=null;S.flash="";S.draft=null;render();window.scrollTo(0,0)});
+
+async function countView(id){
+  if(!S.db)return;
+  try{const ref=S.db.doc("views/"+id);const s=await ref.get();const c=(s.exists?(s.data().count||0):0)+1;await ref.set({count:c})}catch(e){}
+}
+
+/* ---------- pages ---------- */
+function statusHTML(){
+  if(S.status==="loading")return `<div class="empty muted">Opening the notebook…</div>`;
+  if(S.status==="slow")return `<div class="msg">Can't reach your recipes yet. Check your connection — the page will fill in on its own.</div>`;
+  if(S.status==="nodb")return `<div class="msg">Recipe storage isn't available in this view. Open the page on claude.ai while signed in.</div>`;
+  if(S.status==="error")return `<div class="msg">Couldn't load recipes (${esc(S.err)}).</div>`;
+  return "";
+}
+function card(r,extra){
+  const ing=r._ing.map(i=>esc(i.name)).filter(Boolean).slice(0,7).join(", ");
+  return `<a class="rcard" href="#recipe-${r.id}"><div class="rt">${esc(r.title)}</div>
+    <div>${r.category?`<span class="tag">${esc(CAT[r.category]||r.category)}</span>`:""}${r.lang?`<span class="tag">${esc(r.lang)}</span>`:""}</div>
+    <div class="ri">${extra||ing}</div></a>`;
+}
+
+function pageHome(){
+  const total=S.recipes.length;
+  const latest=[...S.recipes].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""))[0];
+  const counts=Object.fromEntries(CATS.map(c=>[c.id,S.recipes.filter(r=>r.category===c.id).length]));
+  return `
+  <section>
+    <h1>What are we cooking?</h1>
+    <form id="homeSearch" class="searchrow"><input type="search" id="hq" placeholder="a recipe, an ingredient, a word…" autocomplete="off"><button class="btn dark">Search</button></form>
+  </section>
+  ${statusHTML()}
+  <section>
+    <h2>${total} recipe${total===1?"":"s"} in the notebook</h2>
+    <div class="cats">${CATS.map(c=>`<button class="cat" data-cat="${c.id}"><b>${counts[c.id]}</b>${c.label}</button>`).join("")}</div>
+  </section>
+  <section>
+    <h2>Last added</h2>
+    ${latest?card(latest)+`<div class="small muted">${fmtDate(latest.createdAt)}</div>`:(S.status==="ok"?`<p>The notebook is empty. <a href="#add">Add your first recipe</a>.</p>`:"")}
+  </section>`;
+}
+
+function filtered(){
+  const words=norm(S.q).split(" ").filter(Boolean);
+  const qGroups=words.length?words.map(w=>groupsForQuery(w)):[];
+  return S.recipes.filter(r=>{
+    if(S.cat&&r.category!==S.cat)return false;
+    if(S.lang&&r.lang!==S.lang)return false;
+    return words.every((w,i)=>r._hay.includes(w)||qGroups[i].some(g=>r._keys.has(g.key)));
+  }).sort(byTitle);
+}
+function resultsHTML(){
+  const list=filtered();
+  if(!list.length)return S.status==="ok"?`<p class="empty">No recipe matches.</p>`:"";
+  const groups={};
+  list.forEach(r=>{let L=norm(r.title).charAt(0).toUpperCase();if(!/[A-Z]/.test(L))L="#";(groups[L]=groups[L]||[]).push(r)});
+  const letters=Object.keys(groups).sort();
+  return `<div class="small muted">${list.length} recipe${list.length===1?"":"s"}</div>
+    <div class="jump">${letters.map(L=>`<button data-jump="${L}">${L}</button>`).join("")}</div>
+    ${letters.map(L=>`<div class="letter" id="L-${L}">${L}</div>${groups[L].map(r=>card(r)).join("")}`).join("")}`;
+}
+function favsHTML(){
+  const top=S.recipes.filter(r=>S.views[r.id]>0).sort((a,b)=>S.views[b.id]-S.views[a.id]).slice(0,6);
+  if(!top.length)return `<p class="small muted">Open a few recipes — the ones you look at most will show up here.</p>`;
+  return `<ol class="favs">${top.map(r=>`<li><a href="#recipe-${r.id}">${esc(r.title)}</a> <span class="small muted">×${S.views[r.id]}</span></li>`).join("")}</ol>`;
+}
+function pageRecipes(){
+  return `
+  <section>
+    <h1>Recipes</h1>
+    <input type="search" id="rq" placeholder="title, ingredient, step… (try “flour” or “farine”)" value="${esc(S.q)}" autocomplete="off">
+    <div class="chips">${[{id:"",label:"All"},...CATS].map(c=>`<button class="chip ${S.cat===c.id?"on":""}" data-fcat="${c.id}">${c.label}</button>`).join("")}</div>
+    <div class="chips">${[["","Any language"],["fr","Français"],["en","English"]].map(([k,l])=>`<button class="chip ${S.lang===k?"on":""}" data-flang="${k}">${l}</button>`).join("")}</div>
+  </section>
+  ${statusHTML()}
+  <section class="cols">
+    <div id="results">${resultsHTML()}</div>
+    <aside class="owner-only"><h2>Most viewed</h2>${favsHTML()}</aside>
+  </section>`;
+}
+
+function allIngredients(){
+  const m=new Map();
+  S.recipes.forEach(r=>r._keys.forEach(k=>{const i=r._ing.find(x=>x.c.key===k);const e=m.get(k)||{key:k,label:i.c.label,count:0};e.count++;m.set(k,e)}));
+  return [...m.values()].sort((a,b)=>b.count-a.count||a.label.localeCompare(b.label,"fr"));
+}
+function ingChipsHTML(){
+  const all=allIngredients();const q=norm(S.ingQ);
+  const qg=new Set(groupsForQuery(S.ingQ).map(g=>g.key));
+  const shown=all.filter(i=>S.ingSel.includes(i.key)||!q||norm(i.label).includes(q)||qg.has(i.key));
+  if(!shown.length)return `<p class="small muted">${q?"No ingredient by that name in your recipes yet.":""}</p>`;
+  return shown.map(i=>`<button class="chip ${S.ingSel.includes(i.key)?"on":""}" data-ing="${esc(i.key)}">${esc(i.label)}<span class="c">${i.count}</span></button>`).join("");
+}
+function ingResultsHTML(){
+  let keys=[...S.ingSel];
+  if(!keys.length&&S.ingQ.trim()){
+    const g=groupsForQuery(S.ingQ).map(g=>g.key);
+    const q=norm(S.ingQ);
+    const list=S.recipes.filter(r=>g.some(k=>r._keys.has(k))||r._ing.some(i=>norm(i.name).includes(q))).sort(byTitle);
+    return list.length?list.map(r=>card(r,matchLine(r,k=>g.includes(k),q))).join(""):`<p class="empty">No recipe uses “${esc(S.ingQ)}” yet.</p>`;
+  }
+  if(!keys.length)return `<p class="muted">Pick one or more ingredients above — recipes using all of them appear here.</p>`;
+  const list=S.recipes.filter(r=>keys.every(k=>r._keys.has(k))).sort(byTitle);
+  return list.length?list.map(r=>card(r,matchLine(r,k=>keys.includes(k)))).join(""):`<p class="empty">No recipe uses all of these together.</p>`;
+}
+function matchLine(r,isHit,q){
+  return r._ing.map(i=>{const hit=isHit(i.c.key)||(q&&norm(i.name).includes(q));return hit?`<mark>${esc(i.qty?i.qty+" ":"")}${esc(i.name)}</mark>`:esc(i.name)}).join(", ");
+}
+function pageIngredients(){
+  return `
+  <section>
+    <h1>Ingredients</h1>
+    <p class="muted">Got a zucchini? Type it (French or English) or tap ingredients below.</p>
+    <input type="search" id="iq" placeholder="zucchini, courgette, farine…" value="${esc(S.ingQ)}" autocomplete="off">
+    <div class="chips" id="ingChips">${ingChipsHTML()}</div>
+    ${S.ingSel.length?`<p class="small"><button class="btn link" id="clearIng">clear selection</button></p>`:""}
+  </section>
+  ${statusHTML()}
+  <section><h2>Recipes</h2><div id="ingResults">${ingResultsHTML()}</div></section>`;
+}
+
+function pageRecipe(id){
+  const r=S.recipes.find(x=>x.id===id);
+  if(!r)return statusHTML()||`<section><p>Recipe not found. <a href="#recipes">Back to recipes</a></p></section>`;
+  const hasNums=r._ing.some(i=>i.n!=null&&i.n!=="");
+  return `
+  <section>
+    <p class="small"><a href="#recipes">← recipes</a></p>
+    <div>${r.category?`<span class="tag">${esc(CAT[r.category]||r.category)}</span>`:""}${r.lang?`<span class="tag">${esc(LANGS[r.lang]||r.lang)}</span>`:""}</div>
+    <h1 class="title">${esc(r.title)}</h1>
+    ${r.source?`<div class="muted">from ${/^https?:\/\//.test(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`:esc(r.source)}</div>`:""}
+  </section>
+  <section>
+    <h2>Ingredients</h2>
+    <table class="ing">${r._ing.map(i=>`<tr data-g="${esc(i.n??"")}"><td class="q">${esc(i.qty)}</td><td>${esc(i.name)}</td>${hasNums?`<td class="n">${i.n!=null&&i.n!==""?`<span class="num" data-g="${esc(i.n)}">${esc(i.n)}</span>`:""}</td>`:""}</tr>`).join("")}</table>
+  </section>
+  ${r.steps.length?`<section><h2>Method</h2>${hasNums?`<p class="small muted">Tap a number to see its ingredients.</p>`:""}<ol class="steps">${r.steps.map(s=>`<li>${stepHTML(s)}</li>`).join("")}</ol></section>`:""}
+  ${r.notes.length?`<section><h2>Notes & tips</h2><ul class="notes">${r.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></section>`:""}
+  <section class="owner-only">
+    <div class="actions">
+      <a class="btn" href="#edit-${r.id}" style="text-decoration:none">Edit</a>
+      <button class="btn danger" id="del" data-id="${r.id}">Delete</button>
+      <span class="small muted">Viewed ${S.views[r.id]||0}× · added ${fmtDate(r.createdAt)}</span>
+    </div>
+  </section>`;
+}
+
+function converterHTML(){
+  return `
+  <section id="conv">
+    <h2>Convert</h2>
+    <p class="small muted">Paste a recipe from a website, or take a photo of a notebook page. It fills in the form below in your numbered format — check it, then save.</p>
+    <div class="chips">
+      <button class="chip ${S.cmode!=="photo"?"on":""}" data-cmode="text">Paste text</button>
+      <button class="chip ${S.cmode==="photo"?"on":""}" data-cmode="photo">Photo of a page</button>
+    </div>
+    <div id="cText" ${S.cmode==="photo"?"hidden":""} style="margin-top:12px">
+      <textarea id="c-text" rows="6" placeholder="On the recipe's web page: select all (Ctrl+A), copy (Ctrl+C), paste here."></textarea>
+      <input type="text" id="c-url" placeholder="link to the page (optional — saved as the source)" style="margin-top:6px">
+      <p><button class="btn dark" id="cGo">Convert</button></p>
+    </div>
+    <div id="cPhoto" ${S.cmode==="photo"?"":"hidden"} style="margin-top:12px">
+      <input type="file" id="c-files" accept="image/*" multiple>
+      <p class="small muted">One recipe at a time; add 2 photos if it runs over two pages.</p>
+      <p><button class="btn dark" id="cGoP">Read the photo</button></p>
+    </div>
+    <div id="cMsg" class="small"></div>
+    <p class="small muted">Only have a link? Paste it to Claude in chat and it can add the recipe for you.</p>
+  </section>`;
+}
+function pageForm(id){
+  const editing=!!id;
+  const r=id?S.recipes.find(x=>x.id===id):S.draft;
+  if(id&&!r)return statusHTML()||`<section><p>Recipe not found.</p></section>`;
+  const ing=r?r.ingredients:[{qty:"",name:"",n:1},{qty:"",name:"",n:1},{qty:"",name:"",n:2}];
+  return `
+  ${editing||S.sampleOK===false?"":converterHTML()}
+  <section>
+    <h1 id="formTop">${editing?"Edit recipe":"New recipe"}</h1>
+    ${S.flash?`<div class="msg">${esc(S.flash)}</div>`:""}
+    <form id="rform" data-id="${editing?r.id:""}">
+      <div class="field"><label for="f-title">Title</label><input type="text" id="f-title" required value="${esc(r?.title)}"></div>
+      <div class="row3">
+        <div class="field"><label for="f-cat">Category</label><select id="f-cat">${CATS.map(c=>`<option value="${c.id}" ${r?.category===c.id?"selected":""}>${c.label}</option>`).join("")}</select></div>
+        <div class="field"><label for="f-lang">Language</label><select id="f-lang">${Object.entries(LANGS).map(([k,l])=>`<option value="${k}" ${(r?.lang||"fr")===k?"selected":""}>${l}</option>`).join("")}</select></div>
+        <div class="field"><label for="f-src">Source <span class="muted small">(optional)</span></label><input type="text" id="f-src" value="${esc(r?.source)}" placeholder="chef, book, link…"></div>
+      </div>
+    </form>
+  </section>
+  <section>
+    <h2>Ingredients</h2>
+    <p class="small muted">Ingredients that go in together get the same number.</p>
+    <div class="ingHead ingrow" style="margin-bottom:2px;font-size:12px;color:var(--muted)"><span>qty</span><span>ingredient</span><span>nº</span><span></span></div>
+    <div id="ingRows">${ing.map(ingRowHTML).join("")}</div>
+    <button class="btn" id="addIng">+ ingredient</button>
+  </section>
+  <section>
+    <h2>Method</h2>
+    <p class="small muted">One step per line. Write (1), (2)… for ingredient numbers.</p>
+    <textarea id="f-steps" rows="8" placeholder="Melt (1) and whisk.&#10;Add (3) to (2) one by one.">${esc((r?.steps||[]).join("\n"))}</textarea>
+    <div class="preview" id="stepPrev"></div>
+  </section>
+  <section>
+    <h2>Notes & tips</h2>
+    <p class="small muted">One tip per line.</p>
+    <textarea id="f-notes" rows="4">${esc((r?.notes||[]).join("\n"))}</textarea>
+  </section>
+  <section class="actions">
+    <button class="btn dark" id="save">Save recipe</button>
+    <a href="${editing?"#recipe-"+r.id:"#recipes"}">cancel</a>
+    <span id="saveMsg" class="small"></span>
+  </section>`;
+}
+function ingRowHTML(i){
+  return `<div class="ingrow"><input type="text" class="i-q" value="${esc(i.qty)}" placeholder="200 g"><input type="text" class="i-n" value="${esc(i.name)}" placeholder="chocolat"><input type="number" min="1" max="20" class="i-g" value="${esc(i.n??"")}"><button class="btn rm" title="remove" aria-label="remove">✕</button></div>`;
+}
+function updatePreview(){
+  const t=document.getElementById("f-steps");const p=document.getElementById("stepPrev");if(!t||!p)return;
+  const lines=t.value.split("\n").map(s=>s.trim()).filter(Boolean);
+  p.innerHTML=lines.length?`<ol class="steps">${lines.map(s=>`<li>${stepHTML(s)}</li>`).join("")}</ol>`:`<span class="small muted">preview</span>`;
+}
+function slugify(s){return norm(s).replace(/ /g,"-").slice(0,40)||"recette"}
+async function saveForm(){
+  const msg=document.getElementById("saveMsg");
+  const f=document.getElementById("rform");
+  const title=document.getElementById("f-title").value.trim();
+  if(!title){msg.textContent="Give it a title first.";return}
+  if(!S.db){msg.textContent="Storage isn't available in this view.";return}
+  const ingredients=[...document.querySelectorAll("#ingRows .ingrow")].map(row=>{
+    const qty=row.querySelector(".i-q").value.trim(),name=row.querySelector(".i-n").value.trim(),g=row.querySelector(".i-g").value.trim();
+    return {qty,name,n:g?parseInt(g,10):null};
+  }).filter(i=>i.qty||i.name);
+  const lines=id=>document.getElementById(id).value.split("\n").map(s=>s.trim()).filter(Boolean);
+  const existing=f.dataset.id?S.recipes.find(r=>r.id===f.dataset.id):null;
+  const id=existing?existing.id:slugify(title)+"-"+Math.random().toString(36).slice(2,6);
+  const now=new Date().toISOString();
+  const data={title,category:document.getElementById("f-cat").value,lang:document.getElementById("f-lang").value,
+    source:document.getElementById("f-src").value.trim(),ingredients,steps:lines("f-steps"),notes:lines("f-notes"),
+    createdAt:existing?.createdAt||now,updatedAt:now};
+  const btn=document.getElementById("save");btn.disabled=true;msg.textContent="Saving…";
+  try{await S.db.doc("recipes/"+id).set(data);location.hash="recipe-"+id}
+  catch(e){btn.disabled=false;msg.textContent=e&&e.code==="invalid_argument"?"You don't have permission to edit this notebook.":"Couldn't save ("+(e&&e.code||"error")+"). Try again."}
+}
+
+/* ---------- converter (asks Claude) ---------- */
+let SAMPLE;
+async function getSample(){
+  if(SAMPLE!==undefined)return SAMPLE;
+  try{SAMPLE=(typeof claude!=="undefined"&&claude.use)?await claude.use("sample"):null}catch(e){SAMPLE=null}
+  return SAMPLE;
+}
+const FORMAT=`You convert recipes into the format of a personal pocket recipe notebook.
+Return ONLY a JSON object, no prose, no code fence:
+{"title":string,"category":"starter"|"main"|"dessert"|"basics","lang":"fr"|"en","source":string,
+ "ingredients":[{"qty":string,"name":string,"n":integer|null}],"steps":[string],"notes":[string]}
+Rules:
+- category: "starter", "main", "dessert" (desserts and pastry), "basics" (sauces, doughs such as pâte brisée, stocks, spice mixes, batters used in other recipes).
+- lang: the language the recipe is written in ("fr" or "en"). Write everything in that language. Never translate.
+- Ingredient numbers: ingredients added at the same moment share ONE number. Number the groups 1, 2, 3… in order of first use. List ingredients sorted by number.
+- qty: short ("200 g", "1 c. à s.", "2", "1 pincée"); keep the source's units. name: short and lowercase ("beurre fondu", "farine T55").
+- steps: very compact notebook style, imperative, one short line each. Refer to ingredients ONLY by number written as (1), (2): e.g. "Melt (1) + whisk. Let cool." / "Ajouter (3) peu à peu en fouettant." Keep oven temperatures and times. Usually 4–10 steps. No anecdotes.
+- notes: 0–4 short tips for success taken from the source (texture fixes, storage, variations). No filler.
+- source: author or website name if known, else "".`;
+function parseJSON(t){const s=t.indexOf("{"),e=t.lastIndexOf("}");if(s<0||e<s)throw {code:"bad_output"};return JSON.parse(t.slice(s,e+1))}
+function cleanDraft(o,url){
+  const arr=a=>Array.isArray(a)?a:[];
+  return {title:String(o.title||""),category:CAT[o.category]?o.category:"main",lang:o.lang==="en"?"en":"fr",
+    source:url||String(o.source||""),
+    ingredients:arr(o.ingredients).map(i=>({qty:String(i.qty??""),name:String(i.name??""),n:Number.isInteger(i.n)?i.n:(parseInt(i.n,10)||null)})),
+    steps:arr(o.steps).map(String).filter(Boolean),notes:arr(o.notes).map(String).filter(Boolean)};
+}
+async function shrink(file){
+  const bmp=await createImageBitmap(file);
+  const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+  const c=document.createElement("canvas");c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  return await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(),"image/jpeg",0.85));
+}
+async function convert(kind){
+  const msg=document.getElementById("cMsg");
+  const s=await getSample();
+  if(!s){msg.textContent="The converter isn't available in this view.";return}
+  let input,url="";const opts={modelTier:"default"};
+  if(kind==="text"){
+    const text=document.getElementById("c-text").value.trim();url=document.getElementById("c-url").value.trim();
+    if(text.length<40){msg.textContent="Paste the recipe text first.";return}
+    input=`${FORMAT}\n\nSOURCE LINK: ${url||"none"}\n\nThe text below was copied from a web page; ignore menus, ads, comments and unrelated content.\n\nRECIPE TEXT:\n"""\n${text.slice(0,30000)}\n"""`;
+  }else{
+    const files=[...document.getElementById("c-files").files];
+    if(!files.length){msg.textContent="Choose or take a photo first.";return}
+    let lim={};try{lim=await s.limits()}catch(e){}
+    if(!lim||!lim.images){msg.textContent="Reading photos isn't available in this view.";return}
+    opts.images=await Promise.all(files.slice(0,4).map(f=>shrink(f).catch(()=>f)));
+    input=`${FORMAT}\n\nThe image(s) show one handwritten page of the notebook, already in this format: a title, ingredients with a quantity and a circled number, then steps that use those numbers, sometimes tips at the end. Transcribe faithfully: keep the existing numbers, the original wording and language; only fix obvious spelling. Ingredients without a circled number get null. Ignore children's drawings or unrelated scribbles. Mark unreadable words with [?].`;
+  }
+  const btns=document.querySelectorAll("#cGo,#cGoP");btns.forEach(b=>b.disabled=true);
+  msg.textContent="Converting… this usually takes 10–30 seconds.";
+  try{
+    const res=await s(input,opts);
+    S.draft=cleanDraft(parseJSON(res.text),url);
+    S.flash="Converted. Check everything below (numbers especially), then Save.";
+    S.formFor=null;render();
+    const top=document.getElementById("formTop");top&&top.scrollIntoView({behavior:"smooth"});
+  }catch(e){
+    btns.forEach(b=>b.disabled=false);
+    const c=e&&e.code;
+    msg.textContent=c==="not_granted"?"Permission to use Claude was declined, so the converter can't run."
+      :c==="rate_limited"?"Too many conversions in a row. Wait a minute and try again."
+      :c==="bad_output"||e instanceof SyntaxError?"The result came back garbled. Try again."
+      :"Couldn't convert ("+(c||"error")+"). Try again.";
+  }
+}
+
+/* ---------- render + events ---------- */
+function render(){
+  const r=route();
+  if((r==="add"||r.startsWith("edit-"))&&S.formFor===r)return; // don't wipe a form being filled
+  const a=document.activeElement,aid=a&&a.id,pos=a&&a.selectionStart;
+  let html;
+  if(r==="recipes")html=pageRecipes();
+  else if(r==="ingredients")html=pageIngredients();
+  else if(r.startsWith("recipe-"))html=pageRecipe(r.slice(7));
+  else if(S.static&&(r==="add"||r.startsWith("edit-")))html=pageHome();
+  else if(r==="add")html=pageForm(null);
+  else if(r.startsWith("edit-"))html=pageForm(r.slice(5));
+  else html=pageHome();
+  app.innerHTML=html;
+  document.querySelectorAll("nav a").forEach(n=>n.classList.toggle("on",n.dataset.nav===(r.startsWith("recipe-")?"recipes":r.startsWith("edit-")?"":r)));
+  if(r==="add"||(r.startsWith("edit-")&&S.recipes.some(x=>x.id===r.slice(5)))){S.formFor=r;updatePreview()}
+  if(aid){const el=document.getElementById(aid);if(el&&el.tagName==="INPUT"){el.focus();try{el.setSelectionRange(pos,pos)}catch(e){}}}
+}
+
+app.addEventListener("submit",e=>{
+  if(e.target.id==="homeSearch"){e.preventDefault();S.q=document.getElementById("hq").value;S.cat="";S.lang="";location.hash="recipes"}
+  else e.preventDefault();
+});
+app.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.id==="rq"){S.q=t.value;document.getElementById("results").innerHTML=resultsHTML()}
+  else if(t.id==="iq"){S.ingQ=t.value;document.getElementById("ingChips").innerHTML=ingChipsHTML();document.getElementById("ingResults").innerHTML=ingResultsHTML()}
+  else if(t.id==="f-steps")updatePreview();
+});
+app.addEventListener("click",e=>{
+  const t=e.target.closest("button,.num");if(!t)return;
+  if(t.dataset.cat!==undefined&&t.classList.contains("cat")){S.cat=t.dataset.cat;S.q="";S.lang="";location.hash="recipes";return}
+  if(t.dataset.fcat!==undefined){S.cat=t.dataset.fcat;render();return}
+  if(t.dataset.flang!==undefined){S.lang=t.dataset.flang;render();return}
+  if(t.dataset.jump){const el=document.getElementById("L-"+t.dataset.jump);el&&el.scrollIntoView({behavior:"smooth",block:"start"});return}
+  if(t.dataset.ing){const k=t.dataset.ing;S.ingSel=S.ingSel.includes(k)?S.ingSel.filter(x=>x!==k):[...S.ingSel,k];S.ingQ="";render();return}
+  if(t.id==="clearIng"){S.ingSel=[];render();return}
+  if(t.classList.contains("num")){
+    const g=t.dataset.g;const on=!t.classList.contains("on");
+    document.querySelectorAll(".num").forEach(n=>n.classList.toggle("on",on&&n.dataset.g===g));
+    document.querySelectorAll("table.ing tr").forEach(tr=>tr.classList.toggle("hl",on&&tr.dataset.g===g));
+    return;
+  }
+  if(t.id==="del"){
+    if(!t.dataset.armed){t.dataset.armed="1";t.textContent="Click again to delete";return}
+    const id=t.dataset.id;t.disabled=true;
+    Promise.all([S.db.doc("recipes/"+id).delete(),S.db.doc("views/"+id).delete()])
+      .then(()=>{location.hash="recipes"})
+      .catch(err=>{t.disabled=false;t.textContent="Couldn't delete ("+(err&&err.code||"error")+")"});
+    return;
+  }
+  if(t.id==="addIng"){
+    const rows=document.getElementById("ingRows");
+    const last=[...rows.querySelectorAll(".i-g")].pop();
+    rows.insertAdjacentHTML("beforeend",ingRowHTML({qty:"",name:"",n:last&&last.value?last.value:""}));
+    rows.lastElementChild.querySelector(".i-q").focus();return;
+  }
+  if(t.classList.contains("rm")){t.closest(".ingrow").remove();return}
+  if(t.id==="save"){saveForm();return}
+  if(t.dataset.cmode){
+    S.cmode=t.dataset.cmode;
+    document.querySelectorAll("[data-cmode]").forEach(b=>b.classList.toggle("on",b===t));
+    document.getElementById("cText").hidden=S.cmode==="photo";
+    document.getElementById("cPhoto").hidden=S.cmode!=="photo";return;
+  }
+  if(t.id==="cGo"){convert("text");return}
+  if(t.id==="cGoP"){convert("photo");return}
+});
+
+/* ---------- boot ---------- */
+async function boot(){
+  render();
+  const timer=setTimeout(()=>{if(S.status==="loading"){S.status="slow";render()}},10000);
+  let db=null;
+  try{db=(typeof claude!=="undefined"&&claude.use)?await claude.use("db"):null}catch(e){db=null}
+  if(!db){
+    // Public copy (e.g. GitHub Pages): read-only, recipes come from recipes.json
+    try{
+      const res=await fetch("recipes.json",{cache:"no-cache"});
+      if(res.ok){const arr=await res.json();S.static=true;document.body.classList.add("static");
+        S.recipes=arr.map(x=>prep(x.id,x));S.status="ok";clearTimeout(timer);render();return}
+    }catch(e){}
+    clearTimeout(timer);S.status="nodb";render();return;
+  }
+  S.db=db;
+  db.collection("recipes").onSnapshot(snap=>{
+    S.recipes=snap.docs.filter(d=>d.exists).map(d=>prep(d.id,d.data()));
+    if(!snap.metadata.fromCache){S.status="ok";clearTimeout(timer)}
+    render();
+  },err=>{clearTimeout(timer);S.status="error";S.err=err&&err.code||"error";render()});
+  db.collection("views").onSnapshot(snap=>{
+    const v={};snap.docs.forEach(d=>{if(d.exists)v[d.id]=d.data().count||0});S.views=v;
+    const r=route();if(r==="recipes"||r.startsWith("recipe-"))render();
+  },()=>{});
+  const r=route();if(r.startsWith("recipe-"))countView(r.slice(7));
+  getSample().then(s=>{S.sampleOK=!!s;if(!s){const c=document.getElementById("conv");c&&c.remove()}});
+}
+boot();
+</script>
+</body>
+</html>
