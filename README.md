@@ -1,4 +1,4 @@
-# yumyum
+# Le carnet Yum Yum
 
 Le carnet de recettes de La Fabrock — the pocket Moleskine, online.
 
