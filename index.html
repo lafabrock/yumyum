@@ -111,6 +111,23 @@
   .vframe.yt{aspect-ratio:16/9;max-width:560px}
   .vframe.ig{max-width:400px;height:620px}
   body.static .owner-only{display:none!important}
+  .printonly{display:none}
+  @media print{
+    @page{margin:14mm}
+    html,body{background:#fff}
+    body{font-size:11pt}
+    header,.owner-only,.vsec,.noprint,.jump{display:none!important}
+    .printonly{display:block;font-size:9pt;color:#555;margin-bottom:6px}
+    .wrap{max-width:none;padding:0}
+    section{padding:8px 0;break-inside:avoid}
+    .title{font-size:22pt;margin:2px 0}
+    table.ing{max-width:none}
+    table.ing tr.hl td{background:none}
+    .num,.num.on{background:#fff;color:#000;border-color:#000}
+    .tag.lbl{color:#000;border-color:#000}
+    a{color:#000;text-decoration:none}
+    ol.steps li{font-size:11pt;padding:4px 0 4px 30px}
+  }
 </style>
 </head>
 <body>
@@ -155,7 +172,7 @@ save_err:"Échec de l'enregistrement ({0}). Réessayez.",conv_na:"Le convertisse
 photo_first:"Choisissez ou prenez d'abord une photo.",photo_na:"La lecture de photos n'est pas disponible ici.",converting:"Conversion… cela prend en général 10 à 30 secondes.",
 converted:"Converti. Vérifiez tout ci-dessous (surtout les numéros), puis enregistrez.",not_granted:"L'autorisation d'utiliser Claude a été refusée : le convertisseur ne peut pas fonctionner.",
 rate:"Trop de conversions d'affilée. Attendez une minute et réessayez.",garbled:"Le résultat est illisible. Réessayez.",conv_err:"Échec de la conversion ({0}). Réessayez.",
-del_confirm:"Cliquez encore pour supprimer",video:"Vidéo",tags:"Étiquettes",tags_ph:"séparées par des virgules, ex. François-Régis Gaudry",all_tags:"Toutes les étiquettes",watch_video:"▶ Voir la vidéo",video_ph:"lien Instagram, YouTube…",del_err:"Échec de la suppression ({0})"},
+del_confirm:"Cliquez encore pour supprimer",video:"Vidéo",print:"🖨 Imprimer",tags:"Étiquettes",tags_ph:"séparées par des virgules, ex. François-Régis Gaudry",all_tags:"Toutes les étiquettes",watch_video:"▶ Voir la vidéo",video_ph:"lien Instagram, YouTube…",del_err:"Échec de la suppression ({0})"},
 en:{nav_home:"Home",nav_recipes:"Recipes",nav_ing:"Ingredients",nav_new:"+ New",
 cat_starter:"Starters",cat_main:"Mains",cat_dessert:"Desserts & pastry",cat_basics:"Basics",lang_fr:"French",lang_en:"English",
 loading:"Opening the notebook…",slow:"Can't reach your recipes yet. Check your connection — the page will fill in on its own.",
@@ -183,7 +200,7 @@ save_err:"Couldn't save ({0}). Try again.",conv_na:"The converter isn't availabl
 photo_first:"Choose or take a photo first.",photo_na:"Reading photos isn't available in this view.",converting:"Converting… this usually takes 10–30 seconds.",
 converted:"Converted. Check everything below (numbers especially), then Save.",not_granted:"Permission to use Claude was declined, so the converter can't run.",
 rate:"Too many conversions in a row. Wait a minute and try again.",garbled:"The result came back garbled. Try again.",conv_err:"Couldn't convert ({0}). Try again.",
-del_confirm:"Click again to delete",video:"Video",tags:"Tags",tags_ph:"comma-separated, e.g. François-Régis Gaudry",all_tags:"All tags",watch_video:"▶ Watch the video",video_ph:"Instagram, YouTube… link",del_err:"Couldn't delete ({0})"}};
+del_confirm:"Click again to delete",video:"Video",print:"🖨 Print",tags:"Tags",tags_ph:"comma-separated, e.g. François-Régis Gaudry",all_tags:"All tags",watch_video:"▶ Watch the video",video_ph:"Instagram, YouTube… link",del_err:"Couldn't delete ({0})"}};
 let UI="fr";try{const v=localStorage.getItem("yumyum-lang");if(v==="en"||v==="fr")UI=v}catch(e){}
 function t(k,...a){let s=(I18N[UI]||{})[k];if(s==null)s=I18N.en[k];if(s==null)s=k;a.forEach((v,i)=>{s=s.replace("{"+i+"}",v)});return s}
 const CATS=[{id:"starter"},{id:"main"},{id:"dessert"},{id:"basics"}];
@@ -251,7 +268,7 @@ const isVideoUrl=u=>/youtube\.com|youtu\.be|instagram\.com\/(p|reel)|tiktok\.com
 function videoHTML(r){
   if(!r.video)return "";
   const e=S.static?videoEmbed(r.video):null;
-  return `<section><h2>${t("video")}</h2>${e?`<iframe class="vframe ${e.cls}" src="${esc(e.src)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`:""}<a class="btn" style="text-decoration:none" href="${esc(r.video)}" target="_blank" rel="noopener">${t("watch_video")}</a></section>`;
+  return `<section class="vsec"><h2>${t("video")}</h2>${e?`<iframe class="vframe ${e.cls}" src="${esc(e.src)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`:""}<a class="btn" style="text-decoration:none" href="${esc(r.video)}" target="_blank" rel="noopener">${t("watch_video")}</a></section>`;
 }
 
 /* ---------- step rendering with ingredient numbers ---------- */
@@ -392,7 +409,8 @@ function pageRecipe(id){
   const hasNums=r._ing.some(i=>i.n!=null&&i.n!=="");
   return `
   <section>
-    <p class="small"><a href="#recipes">${t("back_link")}</a></p>
+    <p class="small noprint"><a href="#recipes">${t("back_link")}</a>${S.static?` <button class="btn" id="printBtn" style="float:right;padding:4px 12px">${t("print")}</button>`:""}</p>
+    <div class="printonly">Le carnet Yum Yum</div>
     <div>${r.category?`<span class="tag">${esc(catLabel(r.category))}</span>`:""}${r.lang?`<span class="tag">${esc(langLabel(r.lang))}</span>`:""}${r.tags.map(x=>`<button class="tag lbl" data-gotag="${esc(x)}"># ${esc(x)}</button>`).join("")}</div>
     <h1 class="title">${esc(r.title)}</h1>
     ${r.source?`<div class="muted">${t("from")} ${/^https?:\/\//.test(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`:esc(r.source)}</div>`:""}
@@ -402,7 +420,7 @@ function pageRecipe(id){
     <h2>${t("ingredients")}</h2>
     <table class="ing">${r._ing.map(i=>`<tr data-g="${esc(i.n??"")}"><td class="q">${esc(i.qty)}</td><td>${esc(i.name)}</td>${hasNums?`<td class="n">${i.n!=null&&i.n!==""?`<span class="num" data-g="${esc(i.n)}">${esc(i.n)}</span>`:""}</td>`:""}</tr>`).join("")}</table>
   </section>
-  ${r.steps.length?`<section><h2>${t("method")}</h2>${hasNums?`<p class="small muted">${t("tap_num")}</p>`:""}<ol class="steps">${r.steps.map(s=>`<li>${stepHTML(s)}</li>`).join("")}</ol></section>`:""}
+  ${r.steps.length?`<section><h2>${t("method")}</h2>${hasNums?`<p class="small muted noprint">${t("tap_num")}</p>`:""}<ol class="steps">${r.steps.map(s=>`<li>${stepHTML(s)}</li>`).join("")}</ol></section>`:""}
   ${r.notes.length?`<section><h2>${t("notes")}</h2><ul class="notes">${r.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></section>`:""}
   <section class="owner-only">
     <div class="actions">
@@ -655,6 +673,7 @@ app.addEventListener("click",e=>{
   }
   if(t.classList.contains("rm")){t.closest(".ingrow").remove();return}
   if(t.id==="save"){saveForm();return}
+  if(t.id==="printBtn"){try{window.print()}catch(e){}return}
   if(t.dataset.cmode){
     S.cmode=t.dataset.cmode;
     document.querySelectorAll("[data-cmode]").forEach(b=>b.classList.toggle("on",b===t));
