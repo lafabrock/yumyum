@@ -252,7 +252,11 @@ function prep(id,d){
     createdAt:d.createdAt||"",updatedAt:d.updatedAt||""};
   r._ing=ingredients.map(i=>({...i,c:canon(i.name)}));
   r._keys=new Set(r._ing.map(i=>i.c.key));
-  r._hay=norm([r.title,r.source,...r.tags,...ingredients.map(i=>i.name),...r._ing.map(i=>i.c.label),...r.steps,...r.notes].join(" "));
+  const auto=[];const links=r.source+" "+r.video;
+  if(/instagram\.com/.test(links))auto.push("Instagram");
+  if(/youtube\.com|youtu\.be/.test(links))auto.push("YouTube");
+  r._tags=[...r.tags,...auto.filter(a=>!r.tags.includes(a))];
+  r._hay=norm([r.title,r.source,...r._tags,...ingredients.map(i=>i.name),...r._ing.map(i=>i.c.label),...r.steps,...r.notes].join(" "));
   return r;
 }
 
@@ -297,7 +301,7 @@ function statusHTML(){
 function card(r,extra){
   const ing=r._ing.map(i=>esc(i.name)).filter(Boolean).slice(0,7).join(", ");
   return `<a class="rcard" href="#recipe-${r.id}"><div class="rt">${esc(r.title)}</div>
-    <div>${r.category?`<span class="tag">${esc(catLabel(r.category))}</span>`:""}${r.lang?`<span class="tag">${esc(r.lang)}</span>`:""}${r.tags.map(x=>`<span class="tag lbl"># ${esc(x)}</span>`).join("")}</div>
+    <div>${r.category?`<span class="tag">${esc(catLabel(r.category))}</span>`:""}${r.lang?`<span class="tag">${esc(r.lang)}</span>`:""}${r._tags.map(x=>`<span class="tag lbl"># ${esc(x)}</span>`).join("")}</div>
     <div class="ri">${extra||ing}</div></a>`;
 }
 
@@ -327,7 +331,7 @@ function filtered(){
   return S.recipes.filter(r=>{
     if(S.cat&&r.category!==S.cat)return false;
     if(S.lang&&r.lang!==S.lang)return false;
-    if(S.tag&&!r.tags.includes(S.tag))return false;
+    if(S.tag&&!r._tags.includes(S.tag))return false;
     return words.every((w,i)=>r._hay.includes(w)||qGroups[i].some(g=>r._keys.has(g.key)));
   }).sort(byTitle);
 }
@@ -346,7 +350,7 @@ function favsHTML(){
   if(!top.length)return `<p class="small muted">${t("favs_empty")}</p>`;
   return `<ol class="favs">${top.map(r=>`<li><a href="#recipe-${r.id}">${esc(r.title)}</a> <span class="small muted">×${S.views[r.id]}</span></li>`).join("")}</ol>`;
 }
-function allTags(){return [...new Set(S.recipes.flatMap(r=>r.tags))].sort((a,b)=>a.localeCompare(b,"fr"))}
+function allTags(){return [...new Set(S.recipes.flatMap(r=>r._tags))].sort((a,b)=>a.localeCompare(b,"fr"))}
 function pageRecipes(){
   return `
   <section>
@@ -411,7 +415,7 @@ function pageRecipe(id){
   <section>
     <p class="small noprint"><a href="#recipes">${t("back_link")}</a>${S.static?` <button class="btn" id="printBtn" style="float:right;padding:4px 12px">${t("print")}</button>`:""}</p>
     <div class="printonly">Le carnet Yum Yum</div>
-    <div>${r.category?`<span class="tag">${esc(catLabel(r.category))}</span>`:""}${r.lang?`<span class="tag">${esc(langLabel(r.lang))}</span>`:""}${r.tags.map(x=>`<button class="tag lbl" data-gotag="${esc(x)}"># ${esc(x)}</button>`).join("")}</div>
+    <div>${r.category?`<span class="tag">${esc(catLabel(r.category))}</span>`:""}${r.lang?`<span class="tag">${esc(langLabel(r.lang))}</span>`:""}${r._tags.map(x=>`<button class="tag lbl" data-gotag="${esc(x)}"># ${esc(x)}</button>`).join("")}</div>
     <h1 class="title">${esc(r.title)}</h1>
     ${r.source?`<div class="muted">${t("from")} ${/^https?:\/\//.test(r.source)?`<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`:esc(r.source)}</div>`:""}
   </section>
